@@ -1,4 +1,4 @@
-package com.gracefulcode.opengine.platforms;
+package com.gracefulcode.opengine.platforms.desktop;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFWVulkan.*;
@@ -23,9 +23,7 @@ public class Desktop implements Platform<Vulkan> {
 	public void configureRendererLayers(Vulkan vulkan) {
 	}
 
-	public void configureRendererExtensions(Vulkan vulkan) {
-		ExtensionConfiguration configuration = vulkan.getExtensionConfiguration();
-
+	public void configureRendererExtensions(ExtensionConfiguration configuration) {
 		PointerBuffer requiredExtensions = glfwGetRequiredInstanceExtensions();
 		if (requiredExtensions == null) {
 			throw new AssertionError("Failed to find list of required Vulkan extensions");
