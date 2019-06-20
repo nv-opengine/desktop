@@ -33,17 +33,23 @@ public class Desktop implements Platform<Vulkan> {
 		return "Desktop (LWJGL3)";
 	}
 
-	public Window getDefaultWindow() {
+	public Window createWindow(Window window) {
 		glfwDefaultWindowHints();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-		
-		long window = glfwCreateWindow(this.defaultWindowConfiguration.width, this.defaultWindowConfiguration.height, this.defaultWindowConfiguration.title, 0, 0);
 
-		glfwShowWindow(window);
+		long windowId = glfwCreateWindow(this.defaultWindowConfiguration.width, this.defaultWindowConfiguration.height, this.defaultWindowConfiguration.title, 0, 0);
+		window.setId(windowId);
 
-		this.defaultWindow = new Window(window);
+		if (this.defaultWindow == null)
+			this.defaultWindow = window;
 
+		glfwShowWindow(windowId);
+
+		return window;
+	}
+
+	public void run() {
 		while(!this.defaultWindow.shouldClose()) {
 			this.defaultWindow.render();
 			for (Window w: this.otherWindows) {
@@ -51,8 +57,6 @@ public class Desktop implements Platform<Vulkan> {
 			}
 			glfwPollEvents();
 		}
-
-		return null;
 	}
 
 	public void configureRendererLayers(Vulkan vulkan) {
