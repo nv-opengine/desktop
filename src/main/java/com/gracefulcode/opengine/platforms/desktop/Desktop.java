@@ -71,7 +71,7 @@ public class Desktop implements Platform<Vulkan> {
 		for (int i = 0; i < requiredExtensions.limit(); i++) {
 			configuration.setExtension(requiredExtensions.getStringUTF8(i), Ternary.YES);
 		}
-		configuration.setExtension("VK_KHR_swapchain", Ternary.YES);
+		// configuration.setExtension("VK_KHR_swapchain", Ternary.YES);
 
 		System.out.println(configuration);
 	}
