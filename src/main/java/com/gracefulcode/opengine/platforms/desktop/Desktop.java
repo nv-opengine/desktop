@@ -5,13 +5,13 @@ import static org.lwjgl.glfw.GLFWVulkan.*;
 
 import com.gracefulcode.opengine.core.ExtensionConfiguration;
 import com.gracefulcode.opengine.core.Ternary;
+import com.gracefulcode.opengine.renderers.vulkan.VkInstance;
 import com.gracefulcode.opengine.renderers.vulkan.Vulkan;
 import com.gracefulcode.opengine.renderers.vulkan.VulkanPlatform;
 
 import java.util.ArrayList;
 
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.vulkan.VkInstance;
 
 public class Desktop implements VulkanPlatform {
 	protected Window defaultWindow;

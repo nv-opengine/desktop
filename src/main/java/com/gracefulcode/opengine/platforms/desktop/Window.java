@@ -5,6 +5,8 @@ import static org.lwjgl.glfw.GLFWVulkan.*;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.vulkan.VK10.*;
 
+import com.gracefulcode.opengine.renderers.vulkan.PhysicalDevice;
+import com.gracefulcode.opengine.renderers.vulkan.VkInstance;
 import com.gracefulcode.opengine.renderers.vulkan.Vulkan;
 
 import org.lwjgl.glfw.GLFWCharCallback;
@@ -16,20 +18,63 @@ import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWWindowCloseCallback;
 import org.lwjgl.glfw.GLFWWindowPosCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
-import org.lwjgl.vulkan.VkInstance;
+import org.lwjgl.vulkan.VkSurfaceCapabilitiesKHR;
 
-public class Window implements com.gracefulcode.opengine.core.Window {
+import java.util.Comparator;
+
+/**
+ * Represents a single window.
+ * <p>
+ * A single window in the app can be independently opened and closed, it
+ * handles its own rendering, and it chooses its own Physical Device.
+ *
+ * @author Daniel Grace<dgrace@gracefulcode.com>
+ * @version 0.1
+ */
+public class Window implements com.gracefulcode.opengine.core.Window,  Comparator<PhysicalDevice> {
+	/**
+	 * The underlying window id.
+	 */
 	protected long id;
+
+	/**
+	 * Hanging onto the VkInstance here lets us do things like (re-)create our
+	 * own Surface. VkInstance should be safe, as it should never change.
+	 */
 	protected VkInstance vkInstance;
+
+	protected PhysicalDevice physicalDevice;
+
+	/**
+	 * The surface of this window.
+	 */
 	protected WindowSurface surface;
 
 	public Window() {
 	}
 
+	/**
+	 * This comparator is used to determine what physical device is used for
+	 * this window if multiple are viable.
+	 */
+	public int compare(PhysicalDevice a, PhysicalDevice b) {
+		VkSurfaceCapabilitiesKHR capabilitiesA = VkSurfaceCapabilitiesKHR.calloc();
+		VkSurfaceCapabilitiesKHR capabilitiesB = VkSurfaceCapabilitiesKHR.calloc();
+
+		this.surface.getCapabilities(a, capabilitiesA);
+		this.surface.getCapabilities(b, capabilitiesB);
+
+		if (a.isDiscreteGpu() && !b.isDiscreteGpu()) return 1;
+		if (!a.isDiscreteGpu() && b.isDiscreteGpu()) return -1;
+
+		capabilitiesA.free();
+		capabilitiesB.free();
+
+		return 0;
+	}
+
 	public void key(int key, int scancode, int action, int mods) {
 		if (action != GLFW_RELEASE) return;
-
-		// System.out.println("In key");
 
 		if (key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(this.id, true);
 	}
@@ -68,7 +113,18 @@ public class Window implements com.gracefulcode.opengine.core.Window {
 		System.out.println("Close!");
 	}
 
-	public void setId(VkInstance vkInstance, long id) {
+	/**
+	 * Sets up the connection between this VulkanWindow and a more generic
+	 * Window.
+	 * <p>
+	 * This should only be called once and only from the core system.
+	 *
+	 * @param vkInstance The Vulkan instance. Used to call vulkan functions to
+	 *        do things like set up a surface.
+	 * @param id The window id from the underlying system (glfw by way of lwjgl
+	 *        in this instance).
+	 */
+	void setId(VkInstance vkInstance, long id) {
 		this.id = id;
 		this.vkInstance = vkInstance;
 
@@ -137,7 +193,11 @@ public class Window implements com.gracefulcode.opengine.core.Window {
 		};
 		glfwSetWindowCloseCallback(this.id, wcc);
 
-		this.surface = new WindowSurface(this.vkInstance, this.id);
+		this.surface = new WindowSurface(this.vkInstance.getInstance(), this.id);
+
+		this.physicalDevice = this.vkInstance.getFirst(this);
+
+		System.out.println("Physical Device: " + this.physicalDevice);
 	}
 
 	public boolean shouldClose() {
