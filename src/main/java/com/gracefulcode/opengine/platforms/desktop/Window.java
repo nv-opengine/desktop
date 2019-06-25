@@ -1,6 +1,11 @@
 package com.gracefulcode.opengine.platforms.desktop;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFWVulkan.*;
+import static org.lwjgl.system.MemoryUtil.*;
+import static org.lwjgl.vulkan.VK10.*;
+
+import com.gracefulcode.opengine.renderers.vulkan.Vulkan;
 
 import org.lwjgl.glfw.GLFWCharCallback;
 import org.lwjgl.glfw.GLFWCursorEnterCallback;
@@ -11,9 +16,12 @@ import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWWindowCloseCallback;
 import org.lwjgl.glfw.GLFWWindowPosCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
+import org.lwjgl.vulkan.VkInstance;
 
 public class Window implements com.gracefulcode.opengine.core.Window {
 	protected long id;
+	protected VkInstance vkInstance;
+	protected WindowSurface surface;
 
 	public Window() {
 	}
@@ -33,7 +41,7 @@ public class Window implements com.gracefulcode.opengine.core.Window {
 	public void resized(int width, int height) {
 		if (width <= 0 || height <= 0) return;
 
-		System.out.println("Width: " + width + ", Height: " + height);
+		// System.out.println("Width: " + width + ", Height: " + height);
 
 		// ClearScreenDemo.width = width;
 		// ClearScreenDemo.height = height;
@@ -60,8 +68,9 @@ public class Window implements com.gracefulcode.opengine.core.Window {
 		System.out.println("Close!");
 	}
 
-	public void setId(long id) {
+	public void setId(VkInstance vkInstance, long id) {
 		this.id = id;
+		this.vkInstance = vkInstance;
 
 		final Window w = this;
 		GLFWKeyCallback kc = new GLFWKeyCallback() {
@@ -127,6 +136,8 @@ public class Window implements com.gracefulcode.opengine.core.Window {
 			}
 		};
 		glfwSetWindowCloseCallback(this.id, wcc);
+
+		this.surface = new WindowSurface(this.vkInstance, this.id);
 	}
 
 	public boolean shouldClose() {

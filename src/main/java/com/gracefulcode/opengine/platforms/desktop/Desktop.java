@@ -4,18 +4,20 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFWVulkan.*;
 
 import com.gracefulcode.opengine.core.ExtensionConfiguration;
-import com.gracefulcode.opengine.core.Platform;
 import com.gracefulcode.opengine.core.Ternary;
 import com.gracefulcode.opengine.renderers.vulkan.Vulkan;
+import com.gracefulcode.opengine.renderers.vulkan.VulkanPlatform;
 
 import java.util.ArrayList;
 
 import org.lwjgl.PointerBuffer;
+import org.lwjgl.vulkan.VkInstance;
 
-public class Desktop implements Platform<Vulkan> {
+public class Desktop implements VulkanPlatform {
 	protected Window defaultWindow;
 	protected Window.Configuration defaultWindowConfiguration;
 	protected ArrayList<Window> otherWindows = new ArrayList<Window>();
+	protected VkInstance vkInstance;
 
 	public Desktop(Window.Configuration defaultWindowConfiguration) {
 		if (!glfwInit()) {
@@ -29,6 +31,10 @@ public class Desktop implements Platform<Vulkan> {
 		this.defaultWindowConfiguration = defaultWindowConfiguration;
 	}
 
+	public void setInstance(VkInstance instance) {
+		this.vkInstance = instance;
+	}
+
 	public String name() {
 		return "Desktop (LWJGL3)";
 	}
@@ -39,7 +45,7 @@ public class Desktop implements Platform<Vulkan> {
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
 		long windowId = glfwCreateWindow(this.defaultWindowConfiguration.width, this.defaultWindowConfiguration.height, this.defaultWindowConfiguration.title, 0, 0);
-		window.setId(windowId);
+		window.setId(this.vkInstance, windowId);
 
 		if (this.defaultWindow == null)
 			this.defaultWindow = window;
@@ -71,7 +77,7 @@ public class Desktop implements Platform<Vulkan> {
 		for (int i = 0; i < requiredExtensions.limit(); i++) {
 			configuration.setExtension(requiredExtensions.getStringUTF8(i), Ternary.YES);
 		}
-		// configuration.setExtension("VK_KHR_swapchain", Ternary.YES);
+		configuration.setExtension("VK_KHR_swapchain", Ternary.YES);
 
 		System.out.println(configuration);
 	}
